@@ -23,19 +23,38 @@ wlabel = open(SAVE_DIR + '/' + SAVE_LABELS, 'w')
 #Extracts all the tweets from an XML file
 def parse_XML (file):
     text = ''
+    continuation = False
     for line in file:
         #Searches if it's a line with a tweet
-        groups = re.search('\[CDATA\[(.*)\]\]', line)
+        if not continuation:
+            groups = re.search('\[CDATA\[(.*)\]\]>', line)
 
-        if groups is not None:
-            #Extracts the tweet and lowercases it
-            tweet = groups.group(1)
-            tweet = tweet.lower()
+            if groups is not None:
+                #Extracts the tweet and lowercases it
+                tweet = groups.group(1)
+                tweet = tweet.lower()
 
-            #Tokenizes the tweet
-            tokens = TweetTokenizer().tokenize(tweet)
-            tokenized = ' '.join(s.encode('ascii', 'ignore') for s in tokens)
-            text = text + ' ' + tokenized
+                #Tokenizes the tweet
+                tokens = TweetTokenizer().tokenize(tweet)
+                tokenized = ' '.join(s.encode('ascii', 'ignore') for s in tokens)
+                text = text + ' ' + tokenized
+            else:
+                groups = re.search('\[CDATA\[(.*)', line)
+                if groups is not None:
+                    temp = groups.group(1)
+                    continuation = True
+        else:
+            groups = re.search('(.*)\]\]>', line)
+            if groups is not None:
+                tweet = temp + ' ' + groups.group(0)
+                tweet = tweet.lower()
+                tokens = TweetTokenizer().tokenize(tweet)
+                tokenized = ' '.join(s.encode('ascii', 'ignore') for s in tokens)
+                text = text + ' ' + tokenized
+                continuation = False
+            else:
+                temp = temp + ' ' + line.rstrip()
+
 
     return text[1:]
 
