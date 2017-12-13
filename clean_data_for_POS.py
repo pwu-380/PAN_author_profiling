@@ -1,0 +1,69 @@
+#This is taking the PAN 2017 dataset, tokenizing the files and combining the result in one line terminated file with the
+#text samples and one line terminated file with the gender labels
+
+import re                                           #The XML is pretty simple so just parsing with regex
+from nltk.tokenize.casual import TweetTokenizer     #Tokenizer
+
+#These are the location of the PAN files
+ANNOTATIONS_FILE = 'data_raw/truth.txt'
+CORPUS = 'data_raw/Dataset'
+
+#Save directory
+SAVE_DIR = 'data_clean'
+#Filename for the processed text
+SAVE_TEXT = 'PAN2017_author_text_tagger_input.txt'
+
+f1 = open(ANNOTATIONS_FILE, 'r')
+wtext = open(SAVE_DIR + '/' + SAVE_TEXT, 'w')
+
+
+#Extracts all the tweets from an XML file
+def parse_XML (file):
+    text = ''
+    continuation = False
+    for line in file:
+        #Searches if it's a line with a tweet
+        if not continuation:
+            groups = re.search('\[CDATA\[(.*)\]\]>', line)
+
+            if groups is not None:
+                #Extracts the tweet and lowercases it
+                tweet = groups.group(1)
+                tweet = tweet.lower()
+
+                #Tokenizes the tweet
+                tokens = TweetTokenizer().tokenize(tweet)
+                tokenized = ' '.join(s.encode('ascii', 'ignore') for s in tokens)
+                text = text + '\n' + tokenized
+            else:
+                groups = re.search('\[CDATA\[(.*)', line)
+                if groups is not None:
+                    temp = groups.group(1)
+                    continuation = True
+        else:
+            groups = re.search('(.*)\]\]>', line)
+            if groups is not None:
+                tweet = temp + ' ' + groups.group(0)
+                tweet = tweet.lower()
+                tokens = TweetTokenizer().tokenize(tweet)
+                tokenized = ' '.join(s.encode('ascii', 'ignore') for s in tokens)
+                text = text + '\n' + tokenized
+                continuation = False
+            else:
+                temp = temp + ' ' + line.rstrip()
+
+    return text[1:]
+
+#Takes the annotations file, looks up the user key and opens that user's tweet corpus
+for line in f1:
+    annotations = line.split(':::')
+    f2 = open(CORPUS + '/' + annotations[0] + '.xml', 'r')
+    text = parse_XML(f2)                        #Gets all the user's tweets in a single line
+
+    #Writes the userID and their tokenized tweets
+    wtext.write(annotations[0] + '\n' + text + '\n')
+
+    f2.close()
+
+f1.close()
+wtext.close()
