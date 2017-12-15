@@ -7,6 +7,7 @@ import re
 NO_URLS = False
 NO_TAGS = False
 NO_PUNCT = False
+NO_NUM = False
 NO_STOPWORDS = False
 STEMMING = True
 
@@ -19,6 +20,8 @@ if NO_TAGS:
     save_string += "_rmTag"
 if NO_PUNCT:
     save_string += "_rmPunc"
+if NO_NUM:
+    save_string += "_rmNo"
 if NO_STOPWORDS:
     save_string += "_rmStop"
 if STEMMING:
@@ -49,6 +52,13 @@ def isPunct(token):
     else:
         return True
 
+def isNum(token):
+    try:
+        float(s)
+        return True
+    except ValueError:
+        return  False
+
 def isStopword(token):
     if (token not in stopwords.words('english')):
         return False
@@ -67,6 +77,8 @@ for line in f1:
         elif NO_TAGS and isTag(token):
             rm = True
         elif NO_PUNCT and isPunct(token):
+            rm = True
+        elif NO_NUM and isNum(token):
             rm = True
         elif NO_STOPWORDS and isStopword(token):
             rm = True
