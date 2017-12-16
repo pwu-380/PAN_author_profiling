@@ -1,10 +1,7 @@
-#This is taking the PAN 2017 dataset, tokenizing the files and combining the result in one line terminated file with the
-#text samples and one line terminated file with the gender labels
 
 import re                                           #The XML is pretty simple so just parsing with regex
-from collections import namedtuple
 
-#These are the location of the PAN files
+#These are the location of the POS files
 POS_FILE = 'data_clean/PAN2017_author_text_tagger_output.txt'
 
 #Save directory
